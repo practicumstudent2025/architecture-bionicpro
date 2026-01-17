@@ -32,6 +32,8 @@ interface ReportResponse {
     avg_battery_level: number;
     prostheses_count: number;
     days_covered: number;
+    warning?: string;  // Предупреждение о недоступности данных
+    info?: string;      // Информационное сообщение
   };
 }
 
@@ -298,6 +300,7 @@ const ReportPage: React.FC = () => {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
+                max={new Date(Date.now() - 86400000).toISOString().split('T')[0]} // Максимум - вчера
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -309,12 +312,20 @@ const ReportPage: React.FC = () => {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
+                max={new Date(Date.now() - 86400000).toISOString().split('T')[0]} // Максимум - вчера
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
+          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="text-sm text-yellow-800">
+              <strong>Важно:</strong> Данные обрабатываются ежедневно в 02:00 UTC. 
+              Данные за сегодня могут быть ещё не доступны. 
+              Рекомендуется запрашивать данные до вчерашнего дня включительно.
+            </p>
+          </div>
           <p className="mt-2 text-sm text-gray-500">
-            Если даты не указаны, будут показаны данные за последние 30 дней
+            Если даты не указаны, будут показаны данные за последние 30 дней (до вчерашнего дня)
           </p>
         </div>
 
@@ -341,6 +352,18 @@ const ReportPage: React.FC = () => {
         {/* Отображение данных отчёта */}
         {reportData && (
           <div className="space-y-6">
+            {/* Предупреждения и информационные сообщения */}
+            {reportData.summary.warning && (
+              <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
+                <strong>Предупреждение:</strong> {reportData.summary.warning}
+              </div>
+            )}
+            {reportData.summary.info && (
+              <div className="p-4 bg-blue-100 border border-blue-400 text-blue-800 rounded">
+                <strong>Информация:</strong> {reportData.summary.info}
+              </div>
+            )}
+            
             {/* Сводная статистика */}
             <div className="p-6 bg-blue-50 rounded-lg">
               <h2 className="text-xl font-semibold mb-4">Сводная статистика</h2>

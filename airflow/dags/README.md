@@ -15,8 +15,9 @@ ETL-процесс для подготовки витрины отчётност
    - Период: последние 24 часа (инкрементальная загрузка)
 
 2. **extract_crm** - Извлечение данных клиентов из CRM DB
-   - Источник: Oracle Database
+   - Источник: тестовые данные (для демонстрации)
    - Данные: пользователи, протезы, заказы
+   - В продакшене: подключение к реальной CRM БД
 
 3. **transform_and_merge** - Объединение и трансформация данных
    - Объединение по `user_id` и `prosthesis_id`
@@ -31,13 +32,14 @@ ETL-процесс для подготовки витрины отчётност
 
 В Airflow UI необходимо настроить connections:
 - `postgres_default` - PostgreSQL для телеметрии
-- `oracle_crm` - Oracle для CRM данных
+
+**Примечание**: CRM данные используют тестовые значения (hardcoded в DAG).
+В продакшене можно добавить connection для реальной CRM БД.
 
 ### Зависимости
 
 Установлены через `requirements.txt`:
 - apache-airflow
 - apache-airflow-providers-postgres
-- apache-airflow-providers-oracle
 - clickhouse-driver
 - pandas

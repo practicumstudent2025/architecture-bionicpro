@@ -107,6 +107,28 @@ async def get_reports(
     if not date_from:
         date_from = date_to - timedelta(days=30)
     
+    # ВАЖНО: Проверка доступности данных в OLAP
+    # Airflow обрабатывает данные ежедневно в 02:00 UTC
+    # Данные за сегодня могут быть ещё не обработаны
+    # Ограничиваем максимальную дату до вчерашнего дня, чтобы гарантировать наличие данных
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # Если запрошена дата позже вчерашнего дня, ограничиваем до вчера
+    # Это предотвращает запрос данных, которых ещё нет в OLAP
+    if date_to > yesterday:
+        logger.warning(
+            f"Requested date_to ({date_to}) is after yesterday ({yesterday}). "
+            f"Limiting to yesterday to ensure data availability in OLAP."
+        )
+        date_to = yesterday
+    
+    # Если date_from стала больше date_to после ограничения, корректируем
+    if date_from > date_to:
+        date_from = date_to - timedelta(days=30)
+        if date_from < date_to - timedelta(days=365):  # Ограничение: не более года назад
+            date_from = date_to - timedelta(days=30)
+    
     try:
         # Формирование запроса к ClickHouse
         # КРИТИЧНО: RBAC фильтрация по user_id - пользователь видит ТОЛЬКО свои данные
@@ -134,8 +156,19 @@ async def get_reports(
         
         logger.info(f"Executing query for user_id={user_id}, date_from={date_from}, date_to={date_to}")
         
-        # Выполнение запроса
+        # Выполнение запроса к ClickHouse (OLAP база данных)
+        # Запрос получает данные из витрины отчётности, которая заполняется Airflow ETL-процессом
         result = client.execute(query)
+        
+        # Проверка наличия данных в результате
+        # Если данных нет, это может означать, что:
+        # 1. Запрошенный период ещё не обработан Airflow
+        # 2. У пользователя нет данных за этот период
+        if not result:
+            logger.info(
+                f"No data found for user_id={user_id}, date_from={date_from}, date_to={date_to}. "
+                f"This may indicate that the period has not been processed by Airflow yet."
+            )
         
         # Преобразование результатов
         # ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА БЕЗОПАСНОСТИ: валидация, что все данные принадлежат текущему пользователю
@@ -194,7 +227,9 @@ async def get_reports(
         
         logger.info(f"Retrieved {len(reports)} reports for user {user_id}")
         
-        return ReportResponse(
+        # Формирование ответа с информацией о доступности данных
+        # Если данных нет, summary будет содержать нулевые значения
+        response = ReportResponse(
             user_id=user_id,
             total_records=len(reports),
             date_from=date_from,
@@ -202,6 +237,21 @@ async def get_reports(
             reports=reports,
             summary=summary
         )
+        
+        # Добавление предупреждения в summary, если данных нет
+        # Это помогает пользователю понять, что запрошенный период может быть ещё не обработан
+        if len(reports) == 0:
+            # Проверяем, не запрошена ли дата в будущем или сегодня
+            if date_to >= today:
+                summary['warning'] = (
+                    f"Данные за период до {date_to} могут быть ещё не обработаны. "
+                    f"Airflow обрабатывает данные ежедневно в 02:00 UTC. "
+                    f"Попробуйте запросить данные до {yesterday}."
+                )
+            else:
+                summary['info'] = "Данные за указанный период не найдены."
+        
+        return response
         
     except Exception as e:
         logger.error(f"Error retrieving reports: {e}")
@@ -232,6 +282,19 @@ async def get_reports_summary(
     if not date_to:
         date_to = date.today()
     if not date_from:
+        date_from = date_to - timedelta(days=30)
+    
+    # ВАЖНО: Проверка доступности данных в OLAP
+    # Airflow обрабатывает данные ежедневно в 02:00 UTC
+    # Ограничиваем максимальную дату до вчерашнего дня
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    if date_to > yesterday:
+        logger.warning(f"Limiting date_to from {date_to} to {yesterday} for data availability")
+        date_to = yesterday
+    
+    if date_from > date_to:
         date_from = date_to - timedelta(days=30)
     
     try:

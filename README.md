@@ -39,7 +39,7 @@
 - **ClickHouse** (OLAP) — витрина отчётности
 - **Apache Airflow** — ETL-процесс (ежедневно в 02:00 UTC)
 - **PostgreSQL** — телеметрия протезов
-- **CRM DB** (Oracle) — данные пользователей и протезов
+- **CRM DB** — данные пользователей и протезов (тестовые данные для демонстрации)
 
 ### ETL-процесс
 1. **Extract**: данные из PostgreSQL и CRM DB
@@ -86,9 +86,8 @@ docker-compose run --rm airflow-webserver airflow users create \
 - Host: `postgres_telemetry`, Port: `5432`, Schema: `telemetry_db`
 - Login: `telemetry_user`, Password: `telemetry_password`
 
-**oracle_crm** (Oracle для CRM):
-- Host: `oracle_crm`, Port: `1521`, Schema: `crm_schema`
-- Login: `crm_user`, Password: `crm_password`
+**Примечание**: Для демонстрации CRM данные используются тестовые (hardcoded в DAG).
+В продакшене можно добавить подключение к реальной CRM БД через Airflow connections.
 
 #### 3. Запуск DAG
 1. Откройте Airflow UI: http://localhost:8081

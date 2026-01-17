@@ -9,7 +9,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.providers.oracle.hooks.oracle import OracleHook
+# OracleHook удалён - для демонстрации используем тестовые данные
+# В продакшене можно добавить: from airflow.providers.oracle.hooks.oracle import OracleHook
 from airflow.providers.http.hooks.http import HttpHook
 import pandas as pd
 from clickhouse_driver import Client
@@ -18,7 +19,7 @@ import logging
 
 # Параметры подключений
 POSTGRES_CONN_ID = 'postgres_default'
-ORACLE_CONN_ID = 'oracle_crm'
+# ORACLE_CONN_ID удалён - для демонстрации используем тестовые данные
 CLICKHOUSE_HOST = 'clickhouse'
 CLICKHOUSE_PORT = 9000
 CLICKHOUSE_DB = 'reports_warehouse'
@@ -94,66 +95,45 @@ def extract_telemetry_data(**context):
 def extract_crm_data(**context):
     """
     Extract: Извлечение данных клиентов из CRM DB
-    Для демонстрации используем мок-данные или PostgreSQL
-    В продакшене здесь будет подключение к Oracle
+    
+    Для демонстрации используем тестовые данные.
+    В продакшене здесь будет подключение к Oracle через OracleHook.
+    Альтернатива: можно использовать PostgreSQL для хранения CRM данных.
     """
     logging.info("Начало извлечения данных из CRM DB")
     
     # Для демонстрации: используем тестовые данные
-    # В продакшене здесь будет OracleHook
-    try:
-        # Попытка подключения к Oracle (если настроено)
-        oracle_hook = OracleHook(oracle_conn_id=ORACLE_CONN_ID)
-        query = """
-        SELECT 
-            u.user_id,
-            u.name as crm_user_name,
-            u.email as crm_user_email,
-            p.prosthesis_id,
-            p.model as crm_prosthesis_model,
-            p.serial_number as crm_prosthesis_serial,
-            o.order_date as crm_order_date,
-            p.manufacturing_date as crm_manufacturing_date
-        FROM users u
-        INNER JOIN prostheses p ON u.user_id = p.user_id
-        LEFT JOIN orders o ON p.order_id = o.order_id
-        WHERE p.status = 'active'
-        """
-        conn = oracle_hook.get_conn()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        df = pd.DataFrame(rows, columns=columns)
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        logging.warning(f"Не удалось подключиться к Oracle: {e}. Используются тестовые данные.")
-        # Тестовые данные для демонстрации
-        df = pd.DataFrame([
-            {
-                'user_id': 1,
-                'crm_user_name': 'Иван Иванов',
-                'crm_user_email': 'ivan@example.com',
-                'prosthesis_id': 101,
-                'crm_prosthesis_model': 'BionicPRO-2024',
-                'crm_prosthesis_serial': 'BP-2024-001',
-                'crm_order_date': '2024-01-15',
-                'crm_manufacturing_date': '2024-02-01'
-            },
-            {
-                'user_id': 2,
-                'crm_user_name': 'Петр Петров',
-                'crm_user_email': 'petr@example.com',
-                'prosthesis_id': 102,
-                'crm_prosthesis_model': 'BionicPRO-2024',
-                'crm_prosthesis_serial': 'BP-2024-002',
-                'crm_order_date': '2024-01-20',
-                'crm_manufacturing_date': '2024-02-10'
-            }
-        ])
+    # В продакшене здесь будет:
+    # oracle_hook = OracleHook(oracle_conn_id='oracle_crm')
+    # или PostgreSQL для CRM:
+    # postgres_hook = PostgresHook(postgres_conn_id='postgres_crm')
     
-    logging.info(f"Извлечено {len(df)} записей из CRM")
+    # Тестовые данные для демонстрации
+    # Соответствуют структуре данных из CRM (пользователи, протезы, заказы)
+    df = pd.DataFrame([
+        {
+            'user_id': 1,
+            'crm_user_name': 'Иван Иванов',
+            'crm_user_email': 'ivan@example.com',
+            'prosthesis_id': 101,
+            'crm_prosthesis_model': 'BionicPRO-2024',
+            'crm_prosthesis_serial': 'BP-2024-001',
+            'crm_order_date': '2024-01-15',
+            'crm_manufacturing_date': '2024-02-01'
+        },
+        {
+            'user_id': 2,
+            'crm_user_name': 'Петр Петров',
+            'crm_user_email': 'petr@example.com',
+            'prosthesis_id': 102,
+            'crm_prosthesis_model': 'BionicPRO-2024',
+            'crm_prosthesis_serial': 'BP-2024-002',
+            'crm_order_date': '2024-01-20',
+            'crm_manufacturing_date': '2024-02-10'
+        }
+    ])
+    
+    logging.info(f"Извлечено {len(df)} записей из CRM (тестовые данные)")
     
     # Сохраняем в XCom
     context['ti'].xcom_push(key='crm_data', value=df.to_json(orient='records'))

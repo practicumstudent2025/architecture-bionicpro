@@ -1,13 +1,5 @@
 FROM apache/airflow:2.7.0
 
-USER root
-
-# Установка зависимостей для Oracle
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libaio1 \
-    && rm -rf /var/lib/apt/lists/*
-
 USER airflow
 
 # Копирование requirements
