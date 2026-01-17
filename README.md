@@ -1,33 +1,54 @@
-## Архитектурное решение: Управление учётными данными
+# BionicPRO - Архитектурные решения
+
+## Задача 1: Управление учётными данными
 
 ### Компоненты
-
-1. **BFF Service** — Backend for Frontend, токены IdP не передаются фронтенду
-2. **Identity Provider Gateway** — унификация доступа к разным IdP (Keycloak, Azure AD, AWS Cognito)
-3. **Token Service** — хранение и управление токенами
-4. **Local Identity Store** — локальное хранение учётных записей
-5. **Regional IdP** — региональные провайдеры по странам
+- **BFF Service** — токены IdP не передаются фронтенду, только session cookies
+- **Identity Provider Gateway** — унификация доступа к IdP (Keycloak, Azure AD, AWS Cognito)
+- **Token Service** — хранение и управление токенами (AES-256)
+- **Local Identity Store** — локальное хранение учётных записей (PostgreSQL)
+- **Regional IdP** — региональные провайдеры по странам
 
 ### Поток аутентификации
-
 Пользователь → Frontend → BFF → IdP Gateway → Regional IdP → BFF → Token Service → Session cookie
 
 **Безопасность**: токены IdP только на бэкенде, фронтенд получает session cookies.
 
-## Реализованные задачи
+**Диаграмма**: `architecture-identity-management.drawio`
 
-### Задача 1: Управление учётными данными
-Архитектурное решение с BFF, IdP Gateway, Token Service. См. `ARCHITECTURE_IDENTITY.md`
+## Задача 2: PKCE для безопасности
 
-### Задача 2: PKCE для безопасности
-- Authorization Code Grant + PKCE добавлен во фронтенд
-- Конфигурация Keycloak обновлена (небезопасные flows отключены)
-- См. `PKCE_IMPLEMENTATION.md`
+### Изменения
+- **Frontend**: `pkceMethod: 'S256'` в App.tsx
+- **Keycloak**: PKCE включён, небезопасные flows отключены
 
-### Задача 3: Сервис отчётов
-- Архитектура ETL-процесса через Apache Airflow
-- Витрина отчётности в ClickHouse (OLAP)
-- Reports API для генерации и предоставления отчётов
-- Объединение данных из PostgreSQL и CRM DB
-- RBAC контроль доступа (пользователь видит только свои отчёты)
-- См. `ARCHITECTURE_REPORTS.md` и `architecture-reports-service.drawio`
+### Как работает
+1. Клиент генерирует code_verifier
+2. Создаёт code_challenge = SHA-256(code_verifier)
+3. Отправляет code_challenge в Keycloak
+4. Получает authorization code
+5. Обменивает code + code_verifier на токены
+
+**Безопасность**: защита от перехвата authorization code.
+
+## Задача 3: Сервис отчётов
+
+### Компоненты
+- **Frontend Web** (React) — просмотр и скачивание отчётов (PDF/CSV)
+- **Reports API** (SpringBoot) — генерация отчётов, RBAC контроль доступа
+- **ClickHouse** (OLAP) — витрина отчётности
+- **Apache Airflow** — ETL-процесс (ежедневно в 02:00 UTC)
+- **PostgreSQL** — телеметрия протезов
+- **CRM DB** (Oracle) — данные пользователей и протезов
+
+### ETL-процесс
+1. **Extract**: данные из PostgreSQL и CRM DB
+2. **Transform**: объединение по user_id/prosthesis_id, агрегация, расчёт метрик
+3. **Load**: загрузка в ClickHouse (upsert)
+
+### Поток запроса отчёта
+Пользователь → Frontend → Reports API → BFF (RBAC) → ClickHouse → Форматирование → PDF/CSV
+
+**Безопасность**: пользователь видит только свои отчёты (фильтрация по user_id).
+
+**Диаграмма**: `architecture-reports-service.drawio`
