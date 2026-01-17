@@ -1,4 +1,4 @@
-version: '3.8'
+# version устарел в новых версиях docker-compose
 
 services:
   keycloak_db:
@@ -117,7 +117,7 @@ services:
     build:
       context: ./airflow
       dockerfile: Dockerfile
-    command: webserver
+    command: airflow webserver
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
@@ -148,7 +148,7 @@ services:
     build:
       context: ./airflow
       dockerfile: Dockerfile
-    command: scheduler
+    command: airflow scheduler
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
@@ -171,7 +171,7 @@ services:
     build:
       context: ./airflow
       dockerfile: Dockerfile
-    command: celery worker
+    command: airflow celery worker
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow

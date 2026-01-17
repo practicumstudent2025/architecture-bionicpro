@@ -22,13 +22,18 @@ def get_clickhouse_client() -> Client:
     Используется как dependency в FastAPI
     """
     try:
-        client = Client(
-            host=CLICKHOUSE_HOST,
-            port=CLICKHOUSE_PORT,
-            database=CLICKHOUSE_DB,
-            user=CLICKHOUSE_USER,
-            password=CLICKHOUSE_PASSWORD
-        )
+        # Если пароль пустой, не передаём его (ClickHouse default user может не иметь пароля)
+        client_params = {
+            "host": CLICKHOUSE_HOST,
+            "port": CLICKHOUSE_PORT,
+            "database": CLICKHOUSE_DB,
+            "user": CLICKHOUSE_USER
+        }
+        # Передаём пароль только если он не пустой
+        if CLICKHOUSE_PASSWORD:
+            client_params["password"] = CLICKHOUSE_PASSWORD
+        
+        client = Client(**client_params)
         return client
     except Exception as e:
         logger.error(f"Failed to connect to ClickHouse: {e}")

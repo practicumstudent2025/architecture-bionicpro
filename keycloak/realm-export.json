@@ -116,13 +116,9 @@
         "publicClient": true,
         "redirectUris": ["http://localhost:3000/*"],
         "webOrigins": ["http://localhost:3000"],
-        // Отключён небезопасный Resource Owner Password Credentials flow
         "directAccessGrantsEnabled": false,
-        // Authorization Code Grant включён (основной flow)
         "standardFlowEnabled": true,
-        // Отключён устаревший и небезопасный Implicit flow
         "implicitFlowEnabled": false,
-        // PKCE расширяет Authorization Code Grant для защиты от перехвата code
         "attributes": {
           "pkce.code.challenge.method": "S256"
         },
