@@ -4,6 +4,7 @@ Reports API - Backend для сервиса отчётов
 """
 
 from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, List
 from datetime import date, datetime, timedelta
@@ -22,6 +23,16 @@ app = FastAPI(
     title="Reports API",
     description="API для получения отчётов о работе протезов",
     version="1.0.0"
+)
+
+# CORS middleware для разрешения запросов с фронтенда
+# Разрешаем запросы с localhost:3000 (React приложение)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Модели данных
