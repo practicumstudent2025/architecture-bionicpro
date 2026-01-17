@@ -52,3 +52,16 @@
 **Безопасность**: пользователь видит только свои отчёты (фильтрация по user_id).
 
 **Диаграмма**: `architecture-reports-service.drawio`
+
+### Реализация ETL (Задача 2)
+
+**Airflow DAG**: `airflow/dags/reports_etl_dag.py`
+- Расписание: ежедневно в 02:00 UTC (`0 2 * * *`)
+- Задачи: extract_telemetry, extract_crm, transform_and_merge, load_to_clickhouse
+
+**Витрина ClickHouse**: `clickhouse/init.sql`
+- Таблица: `prosthesis_usage_reports` (партиционирование по дате)
+- Материализованное представление: `daily_prosthesis_reports`
+- Оптимизация: ORDER BY (user_id, prosthesis_id, report_date) для быстрого доступа
+
+**Настройка**: см. `ETL_SETUP.md`

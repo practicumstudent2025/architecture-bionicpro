@@ -1,0 +1,18 @@
+{
+  "postgres_default": {
+    "conn_type": "postgres",
+    "host": "postgres_telemetry",
+    "schema": "telemetry_db",
+    "login": "telemetry_user",
+    "password": "telemetry_password",
+    "port": 5432
+  },
+  "oracle_crm": {
+    "conn_type": "oracle",
+    "host": "oracle_crm",
+    "schema": "crm_schema",
+    "login": "crm_user",
+    "password": "crm_password",
+    "port": 1521
+  }
+}
