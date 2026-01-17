@@ -25,6 +25,8 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
       KC_PROXY: "edge"
+      # Отключение проверки SSL для всех запросов
+      KC_HTTPS_REQUIRED: "none"
     command: 
       - start-dev
       - --import-realm
@@ -34,6 +36,11 @@ services:
       - "8080:8080"
     depends_on:
       - keycloak_db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
   frontend:
     build:
       context: ./frontend
@@ -76,6 +83,7 @@ services:
     volumes:
       - ./clickhouse-data:/var/lib/clickhouse
       - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
     ports:
       - "8123:8123"  # HTTP интерфейс
       - "9000:9000"  # Native протокол
