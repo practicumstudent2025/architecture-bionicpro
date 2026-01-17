@@ -13,7 +13,7 @@ import os
 import logging
 
 from app.database import get_clickhouse_client
-from app.auth import verify_token, get_user_id_from_token
+from app.auth import get_current_user_id
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -78,31 +78,28 @@ async def get_reports(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     prosthesis_id: Optional[int] = None,
-    authorization: Optional[str] = Header(None),
+    user_id: int = Depends(get_current_user_id),  # RBAC: user_id извлекается из токена
     client: Client = Depends(get_clickhouse_client)
 ):
     """
-    Получение отчётов о работе протезов
+    Получение отчётов о работе протезов.
+    
+    RBAC (Role-Based Access Control): пользователь может видеть только свои отчёты.
+    user_id автоматически извлекается из токена аутентификации и используется для фильтрации данных.
     
     - **date_from**: Начальная дата (по умолчанию - последние 30 дней)
     - **date_to**: Конечная дата (по умолчанию - сегодня)
     - **prosthesis_id**: Фильтр по конкретному протезу (опционально)
     
-    Требуется аутентификация через заголовок Authorization
-    """
-    # Аутентификация и получение user_id
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
+    Требуется аутентификация через заголовок Authorization: Bearer <token>
     
-    try:
-        # Проверка токена через BFF Service
-        # В продакшене здесь будет вызов BFF для валидации токена
-        user_id = get_user_id_from_token(authorization)
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        logger.error(f"Authentication error: {e}")
-        raise HTTPException(status_code=401, detail="Authentication failed")
+    Security:
+        - Все запросы фильтруются по user_id из токена
+        - Пользователь не может запросить отчёты другого пользователя
+        - Фильтрация происходит на уровне SQL-запроса к ClickHouse
+    """
+    # user_id уже извлечён и валидирован через dependency get_current_user_id
+    # Это гарантирует, что пользователь аутентифицирован и может видеть только свои данные
     
     # Установка дат по умолчанию
     if not date_to:
@@ -112,19 +109,22 @@ async def get_reports(
     
     try:
         # Формирование запроса к ClickHouse
-        # RBAC: фильтрация по user_id - пользователь видит только свои данные
+        # КРИТИЧНО: RBAC фильтрация по user_id - пользователь видит ТОЛЬКО свои данные
+        # user_id берётся из токена аутентификации, а не из параметров запроса
+        # Это предотвращает попытки запросить данные другого пользователя
         query_parts = [
             "SELECT user_id, prosthesis_id, report_date, report_hour,",
             "movements_count, battery_level_avg, battery_level_min, battery_level_max,",
             "usage_hours, avg_movements_per_hour, peak_activity_hour,",
             "crm_user_name, crm_prosthesis_model, crm_prosthesis_serial",
             "FROM reports_warehouse.prosthesis_usage_reports",
-            f"WHERE user_id = {user_id}",
+            f"WHERE user_id = {user_id}",  # RBAC: фильтрация по user_id из токена
             f"AND report_date >= '{date_from}'",
             f"AND report_date <= '{date_to}'"
         ]
         
         # Добавление фильтра по протезу, если указан
+        # Важно: фильтр применяется только к протезам текущего пользователя
         if prosthesis_id:
             query_parts.append(f"AND prosthesis_id = {prosthesis_id}")
         
@@ -132,12 +132,27 @@ async def get_reports(
         
         query = " ".join(query_parts)
         
+        logger.info(f"Executing query for user_id={user_id}, date_from={date_from}, date_to={date_to}")
+        
         # Выполнение запроса
         result = client.execute(query)
         
         # Преобразование результатов
+        # ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА БЕЗОПАСНОСТИ: валидация, что все данные принадлежат текущему пользователю
+        # Это защита от потенциальных ошибок в SQL-запросе или манипуляций с данными
         reports = []
         for row in result:
+            row_user_id = row[0]
+            
+            # RBAC проверка: убеждаемся, что user_id в строке совпадает с user_id из токена
+            # Это дополнительный уровень защиты на случай ошибок в запросе
+            if row_user_id != user_id:
+                logger.warning(
+                    f"SECURITY WARNING: Row user_id ({row_user_id}) != authenticated user_id ({user_id}). "
+                    f"Skipping row to prevent data leakage."
+                )
+                continue  # Пропускаем строки, которые не принадлежат текущему пользователю
+            
             reports.append(ReportItem(
                 user_id=row[0],
                 prosthesis_id=row[1],
@@ -197,22 +212,22 @@ async def get_reports(
 async def get_reports_summary(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-    authorization: Optional[str] = Header(None),
+    user_id: int = Depends(get_current_user_id),  # RBAC: user_id извлекается из токена
     client: Client = Depends(get_clickhouse_client)
 ):
     """
-    Получение сводной статистики (использует материализованное представление)
-    Быстрее, чем полный отчёт, так как использует предварительно агрегированные данные
-    """
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
+    Получение сводной статистики (использует материализованное представление).
     
-    try:
-        user_id = get_user_id_from_token(authorization)
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Authentication failed")
+    Быстрее, чем полный отчёт, так как использует предварительно агрегированные данные.
+    
+    RBAC (Role-Based Access Control): пользователь может видеть только свою статистику.
+    user_id автоматически извлекается из токена аутентификации.
+    
+    Security:
+        - Все запросы фильтруются по user_id из токена
+        - Пользователь не может запросить статистику другого пользователя
+    """
+    # user_id уже извлечён и валидирован через dependency get_current_user_id
     
     if not date_to:
         date_to = date.today()
@@ -221,6 +236,7 @@ async def get_reports_summary(
     
     try:
         # Использование материализованного представления для быстрого доступа
+        # КРИТИЧНО: RBAC фильтрация по user_id - пользователь видит ТОЛЬКО свою статистику
         query = f"""
         SELECT 
             report_date,
@@ -228,12 +244,14 @@ async def get_reports_summary(
             avg(avg_battery_level) as avg_battery,
             sum(total_usage_hours) as total_hours
         FROM reports_warehouse.daily_prosthesis_reports
-        WHERE user_id = {user_id}
+        WHERE user_id = {user_id}  -- RBAC: фильтрация по user_id из токена
         AND report_date >= '{date_from}'
         AND report_date <= '{date_to}'
         GROUP BY report_date
         ORDER BY report_date DESC
         """
+        
+        logger.info(f"Executing summary query for user_id={user_id}, date_from={date_from}, date_to={date_to}")
         
         result = client.execute(query)
         
