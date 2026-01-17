@@ -53,15 +53,58 @@
 
 **Диаграмма**: `architecture-reports-service.drawio`
 
-### Реализация ETL (Задача 2)
+## Реализация ETL
 
-**Airflow DAG**: `airflow/dags/reports_etl_dag.py`
-- Расписание: ежедневно в 02:00 UTC (`0 2 * * *`)
-- Задачи: extract_telemetry, extract_crm, transform_and_merge, load_to_clickhouse
+### Airflow DAG
+**Файл**: `airflow/dags/reports_etl_dag.py`
+- **Расписание**: ежедневно в 02:00 UTC (`0 2 * * *`)
+- **Задачи**:
+  1. `extract_telemetry` — извлечение из PostgreSQL
+  2. `extract_crm` — извлечение из CRM DB
+  3. `transform_and_merge` — объединение и трансформация
+  4. `load_to_clickhouse` — загрузка в витрину
 
-**Витрина ClickHouse**: `clickhouse/init.sql`
-- Таблица: `prosthesis_usage_reports` (партиционирование по дате)
-- Материализованное представление: `daily_prosthesis_reports`
-- Оптимизация: ORDER BY (user_id, prosthesis_id, report_date) для быстрого доступа
+### Витрина ClickHouse
+**Файл**: `clickhouse/init.sql`
+- **Таблица**: `prosthesis_usage_reports` (партиционирование по дате)
+- **Материализованное представление**: `daily_prosthesis_reports`
+- **Оптимизация**: ORDER BY (user_id, prosthesis_id, report_date) для быстрого доступа
 
-**Настройка**: см. `ETL_SETUP.md`
+### Настройка и запуск
+
+#### 1. Инициализация Airflow
+```bash
+docker-compose run --rm airflow-webserver airflow users create \
+    --username admin --firstname Admin --lastname User \
+    --role Admin --email admin@example.com --password admin
+```
+
+#### 2. Настройка подключений в Airflow UI
+Откройте http://localhost:8081 и настройте connections:
+
+**postgres_default** (PostgreSQL для телеметрии):
+- Host: `postgres_telemetry`, Port: `5432`, Schema: `telemetry_db`
+- Login: `telemetry_user`, Password: `telemetry_password`
+
+**oracle_crm** (Oracle для CRM):
+- Host: `oracle_crm`, Port: `1521`, Schema: `crm_schema`
+- Login: `crm_user`, Password: `crm_password`
+
+#### 3. Запуск DAG
+1. Откройте Airflow UI: http://localhost:8081
+2. Найдите DAG `reports_etl_dag`
+3. Включите DAG (переключите тумблер)
+4. DAG будет запускаться ежедневно в 02:00 UTC
+
+#### 4. Проверка данных в ClickHouse
+```bash
+docker-compose exec clickhouse clickhouse-client
+USE reports_warehouse;
+SELECT * FROM prosthesis_usage_reports LIMIT 10;
+```
+
+### Расписание и мониторинг
+- **Интервал**: Ежедневно в 02:00 UTC
+- **Инкрементальная загрузка**: данные за последние 24 часа
+- **Логи**: Airflow UI → DAG → Task Instance → Log
+- **Метрики**: Airflow UI → Admin → Metrics
