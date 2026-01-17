@@ -43,6 +43,7 @@ services:
     depends_on:
       - keycloak
 
+  # PostgreSQL для телеметрии протезов
   postgres_telemetry:
     image: postgres:14
     environment:
@@ -60,6 +61,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # ClickHouse для витрины отчётности
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     environment:
@@ -70,8 +72,8 @@ services:
       - ./clickhouse-data:/var/lib/clickhouse
       - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "8123:8123"
-      - "9000:9000"
+      - "8123:8123"  # HTTP интерфейс
+      - "9000:9000"  # Native протокол
     ulimits:
       nofile:
         soft: 262144
@@ -82,6 +84,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Airflow: Redis для Celery
   redis:
     image: redis:7-alpine
     ports:
@@ -92,6 +95,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Airflow: PostgreSQL для метаданных
   postgres_airflow:
     image: postgres:14
     environment:
@@ -108,6 +112,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Airflow: Webserver
   airflow-webserver:
     build:
       context: ./airflow
@@ -138,6 +143,7 @@ services:
       timeout: 10s
       retries: 5
 
+  # Airflow: Scheduler
   airflow-scheduler:
     build:
       context: ./airflow
@@ -160,6 +166,7 @@ services:
       - redis
       - airflow-webserver
 
+  # Airflow: Worker
   airflow-worker:
     build:
       context: ./airflow
@@ -179,25 +186,3 @@ services:
       - postgres_airflow
       - redis
       - airflow-scheduler
-
-  # Reports API (FastAPI)
-  reports-api:
-    build:
-      context: ./reports-api
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      CLICKHOUSE_HOST: clickhouse
-      CLICKHOUSE_PORT: 9000
-      CLICKHOUSE_DB: reports_warehouse
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: ""
-      BFF_SERVICE_URL: http://bff-service:8080
-    depends_on:
-      - clickhouse
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
