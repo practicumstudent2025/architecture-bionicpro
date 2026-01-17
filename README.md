@@ -23,3 +23,11 @@
 - Authorization Code Grant + PKCE добавлен во фронтенд
 - Конфигурация Keycloak обновлена (небезопасные flows отключены)
 - См. `PKCE_IMPLEMENTATION.md`
+
+### Задача 3: Сервис отчётов
+- Архитектура ETL-процесса через Apache Airflow
+- Витрина отчётности в ClickHouse (OLAP)
+- Reports API для генерации и предоставления отчётов
+- Объединение данных из PostgreSQL и CRM DB
+- RBAC контроль доступа (пользователь видит только свои отчёты)
+- См. `ARCHITECTURE_REPORTS.md` и `architecture-reports-service.drawio`

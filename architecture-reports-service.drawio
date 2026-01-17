@@ -1,0 +1,102 @@
+<mxfile host="65bd71144e">
+    <diagram name="BionicPRO - Reports Service" id="reports-service">
+        <mxGraphModel dx="1939" dy="509" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="boundary" value="BionicPRO System" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="1520" height="1100" as="geometry"/>
+                </mxCell>
+                <mxCell id="pilot" value="Пилот протеза&lt;br&gt;[Person]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Запрашивает отчёт&lt;br&gt;о работе протеза&lt;/font&gt;" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;resizable=0;" parent="1" vertex="1">
+                    <mxGeometry x="-100" y="200" width="160" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend-web" value="Frontend Web&lt;br&gt;[Container: React]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Просмотр отчётов,&lt;br&gt;скачивание PDF/CSV&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="200" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports-api" value="Reports API&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;br&gt;&lt;font size=&quot;2&quot;&gt;- Аутентификация&lt;br&gt;- RBAC проверка&lt;br&gt;- Генерация отчётов&lt;br&gt;- Форматирование (PDF/CSV)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="200" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="clickhouse" value="ClickHouse&lt;br&gt;[Container: OLAP Database]&lt;br&gt;&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Витрина отчётности:&lt;br&gt;- Данные датчиков&lt;br&gt;- Данные CRM&lt;br&gt;- Агрегированные метрики&lt;br&gt;- Временные ряды&lt;/font&gt;" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#4ecdc4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="200" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="airflow" value="Apache Airflow&lt;br&gt;[Container: ETL Orchestrator]&lt;br&gt;&lt;br&gt;&lt;font size=&quot;2&quot;&gt;ETL-процесс:&lt;br&gt;- Extract из PostgreSQL&lt;br&gt;- Extract из CRM DB&lt;br&gt;- Transform (объединение, агрегация)&lt;br&gt;- Load в ClickHouse&lt;br&gt;- Расписание (ежедневно)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffa500;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="500" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="postgres-db" value="PostgreSQL&lt;br&gt;[Container: OLTP Database]&lt;br&gt;&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Источник данных:&lt;br&gt;- Телеметрия протезов&lt;br&gt;- Данные датчиков&lt;br&gt;- Временные ряды&lt;/font&gt;" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="500" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="crm-db" value="CRM DB&lt;br&gt;[Container: Oracle Database]&lt;br&gt;&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Источник данных:&lt;br&gt;- Информация о пользователях&lt;br&gt;- Данные о протезах&lt;br&gt;- Заказы и история&lt;/font&gt;" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="500" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="bff" value="BFF Service&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Аутентификация,&lt;br&gt;проверка доступа&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="380" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="api" value="API&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Основной API&lt;br&gt;системы&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="1240" y="200" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="Запрос отчёта" style="endArrow=block;html=1;" parent="1" source="pilot" target="frontend-web" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="HTTP GET /reports&lt;br&gt;(с аутентификацией)" style="endArrow=block;html=1;" parent="1" source="frontend-web" target="reports-api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="Проверка доступа&lt;br&gt;(RBAC)" style="endArrow=block;html=1;dashed=1;" parent="1" source="reports-api" target="bff" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="620" y="280"/>
+                            <mxPoint x="300" y="280"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" value="SELECT запросы&lt;br&gt;к витрине" style="endArrow=block;html=1;" parent="1" source="reports-api" target="clickhouse" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="ETL DAG&lt;br&gt;(ежедневно)" style="endArrow=block;html=1;" parent="1" source="airflow" target="postgres-db" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="350" y="640"/>
+                            <mxPoint x="350" y="580"/>
+                            <mxPoint x="720" y="580"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e6" value="ETL DAG&lt;br&gt;(ежедневно)" style="endArrow=block;html=1;" parent="1" source="airflow" target="crm-db" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="350" y="640"/>
+                            <mxPoint x="350" y="600"/>
+                            <mxPoint x="1040" y="600"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e7" value="Load в витрину&lt;br&gt;(объединённые данные)" style="endArrow=block;html=1;" parent="1" source="airflow" target="clickhouse" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="350" y="680"/>
+                            <mxPoint x="350" y="720"/>
+                            <mxPoint x="960" y="720"/>
+                            <mxPoint x="960" y="360"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e8" value="Телеметрия&lt;br&gt;(real-time)" style="endArrow=block;html=1;dashed=1;" parent="1" source="api" target="postgres-db" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1340" y="300"/>
+                            <mxPoint x="1340" y="580"/>
+                            <mxPoint x="840" y="580"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e9" value="Отчёт (PDF/CSV)" style="endArrow=block;html=1;" parent="1" source="reports-api" target="frontend-web" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="620" y="280"/>
+                            <mxPoint x="310" y="280"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
