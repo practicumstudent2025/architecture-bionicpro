@@ -11,6 +11,9 @@ const keycloakConfig: KeycloakConfig = {
 
 const keycloak = new Keycloak(keycloakConfig);
 
+// Authorization Code Grant + PKCE для защиты от перехвата authorization code
+// PKCE расширяет Code Grant, добавляя code_verifier/code_challenge
+// S256 - SHA-256 хеширование code_verifier
 const initOptions: KeycloakInitOptions = {
   onLoad: 'check-sso',
   pkceMethod: 'S256',
