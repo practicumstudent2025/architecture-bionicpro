@@ -108,3 +108,34 @@ SELECT * FROM prosthesis_usage_reports LIMIT 10;
 - **Инкрементальная загрузка**: данные за последние 24 часа
 - **Логи**: Airflow UI → DAG → Task Instance → Log
 - **Метрики**: Airflow UI → Admin → Metrics
+
+## Reports API (Задача 3)
+
+### Реализация
+**Файл**: `reports-api/app/main.py`
+- **Framework**: FastAPI (Python)
+- **Endpoints**:
+  - `GET /health` - проверка здоровья API
+  - `GET /reports` - получение отчётов (с фильтрацией по датам и протезу)
+  - `GET /reports/summary` - сводная статистика (использует материализованное представление)
+
+### Особенности
+- **RBAC**: фильтрация по `user_id` - пользователь видит только свои данные
+- **Быстрый доступ**: запросы к предварительно агрегированным данным в ClickHouse
+- **Аутентификация**: через заголовок `Authorization: Bearer <token>`
+- **Сводная статистика**: автоматический расчёт метрик (движения, батарея, использование)
+
+### Запуск
+```bash
+# Через docker-compose
+docker-compose up reports-api
+
+# API доступен на http://localhost:8000
+# Документация: http://localhost:8000/docs
+```
+
+### Пример запроса
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8000/reports?date_from=2024-01-01&date_to=2024-01-31"
+```
