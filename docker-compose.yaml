@@ -125,11 +125,61 @@ services:
       timeout: 5s
       retries: 5
 
-  # Airflow: Webserver
-  airflow-webserver:
+  # Общие настройки для всех Airflow сервисов
+  x-airflow-common:
+    &airflow-common
     build:
       context: ./airflow
       dockerfile: Dockerfile
+    environment: &airflow-common-env
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres_airflow/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes: &airflow-common-volumes
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on: &airflow-common-depends
+      postgres_airflow:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Airflow: Инициализация базы данных
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "Waiting for PostgreSQL to be ready..."
+        until airflow db check 2>/dev/null; do
+          echo "PostgreSQL is unavailable - sleeping"
+          sleep 2
+        done
+        echo "Connection successful."
+        echo "PostgreSQL is ready!"
+        echo "Initializing Airflow database..."
+        airflow db init
+        echo "Database initialized successfully"
+        echo "Creating admin user..."
+        airflow users create \
+          --username admin \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@example.com \
+          --password admin || echo "Admin user may already exist"
+        echo "Admin user setup complete"
+    restart: "no"
+
+  # Airflow: Webserver
+  airflow-webserver:
+    <<: *airflow-common
     command: airflow webserver
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -139,17 +189,13 @@ services:
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
     ports:
       - "8081:8080"
     depends_on:
-      - postgres_airflow
-      - redis
+      airflow-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -158,47 +204,21 @@ services:
 
   # Airflow: Scheduler
   airflow-scheduler:
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    <<: *airflow-common
     command: airflow scheduler
-    environment:
-      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
-      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres_airflow/airflow
-      AIRFLOW__CORE__FERNET_KEY: ''
-      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
     depends_on:
-      - postgres_airflow
-      - redis
-      - airflow-webserver
+      airflow-init:
+        condition: service_completed_successfully
 
   # Airflow: Worker
   airflow-worker:
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    <<: *airflow-common
     command: airflow celery worker
-    environment:
-      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
-      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres_airflow/airflow
-      AIRFLOW__CORE__FERNET_KEY: ''
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
     depends_on:
-      - postgres_airflow
-      - redis
-      - airflow-scheduler
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-scheduler:
+        condition: service_started
   # Reports API (FastAPI)
   reports-api:
     build:
