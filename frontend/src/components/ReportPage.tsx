@@ -41,12 +41,21 @@ const ReportPage: React.FC = () => {
   // Хук для работы с Keycloak (аутентификация)
   const { keycloak, initialized } = useKeycloak();
   
+  // Вычисляем дату по умолчанию (вчерашний день, как в DAG)
+  const getDefaultDate = (): string => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split('T')[0]; // Формат YYYY-MM-DD
+  };
+  
+  const defaultDate = getDefaultDate();
+  
   // Состояния компонента
   const [loading, setLoading] = useState(false); // Индикатор загрузки
   const [error, setError] = useState<string | null>(null); // Сообщение об ошибке
   const [reportData, setReportData] = useState<ReportResponse | null>(null); // Данные отчёта
-  const [dateFrom, setDateFrom] = useState<string>(''); // Фильтр: начальная дата
-  const [dateTo, setDateTo] = useState<string>(''); // Фильтр: конечная дата
+  const [dateFrom, setDateFrom] = useState<string>(defaultDate); // Фильтр: начальная дата (по умолчанию - вчера)
+  const [dateTo, setDateTo] = useState<string>(defaultDate); // Фильтр: конечная дата (по умолчанию - вчера)
 
   /**
    * Функция для получения отчёта из Reports API
