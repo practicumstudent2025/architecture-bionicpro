@@ -1,0 +1,157 @@
+<mxfile host="65bd71144e">
+    <diagram name="BionicPRO - Identity Management" id="identity-management">
+        <mxGraphModel dx="1939" dy="509" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="boundary" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="10" width="1150" height="1000" as="geometry"/>
+                </mxCell>
+                <mxCell id="buyer" value="Покупатель протеза&lt;br&gt;[Person]" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" parent="1" vertex="1">
+                    <mxGeometry x="-70" y="40" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="pilot" value="Пилот протеза&lt;br&gt;[Person]&lt;br&gt;С этого человека считываются данные" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" parent="1" vertex="1">
+                    <mxGeometry x="-270" y="340" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" value="Оператор производства&lt;br&gt;[Person]" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" parent="1" vertex="1">
+                    <mxGeometry x="1370" y="40" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="ml" value="ML-инженер&lt;br&gt;[Person]" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" parent="1" vertex="1">
+                    <mxGeometry x="1475" y="720" width="110" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="app" value="Приложение для донастройки протеза&lt;br&gt;[Container: iOS, Android]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Донастройка в реальном времени,&lt;br&gt;управление через Bluetooth&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="180" width="220" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="shop" value="Интернет-магазин&lt;br&gt;[Container: Битрикс24]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="40" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend-web" value="Frontend Web&lt;br&gt;[Container: React]&lt;br&gt;&lt;font size=&quot;2&quot;&gt;Просмотр отчётов,&lt;br&gt;анализ данных, скачивание&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="535" width="220" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="bff" value="BFF Service&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;br&gt;Backend for Frontend:&lt;br&gt;- OAuth 2.0 flow&lt;br&gt;- Session management&lt;br&gt;- Token handling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="520" width="220" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="idp-gateway" value="Identity Provider Gateway&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;br&gt;- IdP abstraction&lt;br&gt;- Regional routing&lt;br&gt;- Protocol adaptation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="680" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="token-service" value="Token Service&lt;br&gt;[Container: SpringBoot]&lt;br&gt;&lt;br&gt;- Token storage&lt;br&gt;- Token refresh&lt;br&gt;- JWT issuance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="525" width="240" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="local-identity-store" value="Local Identity Store&lt;br&gt;[Container: PostgreSQL]&lt;br&gt;&lt;br&gt;- User accounts&lt;br&gt;- IdP mappings&lt;br&gt;- User metadata" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#ff6b6b;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="1110" y="705" width="240" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="keycloak-ru" value="Keycloak&lt;br&gt;[External: IdP]&lt;br&gt;Россия" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ecdc4;fontColor=#000000;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="850" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-ad-eu" value="Azure AD&lt;br&gt;[External: IdP]&lt;br&gt;Европа" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ecdc4;fontColor=#000000;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="850" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="aws-cognito-us" value="AWS Cognito&lt;br&gt;[External: IdP]&lt;br&gt;США" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ecdc4;fontColor=#000000;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="850" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="chip" value="Программа в чипе протеза&lt;br&gt;[Software System]&lt;br&gt;&lt;br&gt;Чтение данных с датчиков, распознавание движений и их воспроизводство. Чтение команд из приложения и их воспроизводство, передача телеметрии" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0b5fa5;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="340" width="220" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="api" value="API&lt;br&gt;[Container: SpringBoot, ElasticSearch, etc.]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="375" width="230" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="db" value="База данных&lt;br&gt;[Container: PostgreSQL]" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="375" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="crm" value="CRM&lt;br&gt;[Container: Битрикс24]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="40" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="crmdb" value="CRM DB&lt;br&gt;[Container: Oracle Database 12]" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="950" y="210" width="220" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="cli" value="cli tool&lt;br&gt;[Container: SpringBoot, ElasticSearch, etc.]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ea7d7;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="370" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="Выбор протеза, заказ, оплата" style="endArrow=block;html=1;" parent="1" source="buyer" target="shop" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="Просмотр отчётов,&lt;br&gt;анализ данных" style="endArrow=block;html=1;" parent="1" source="pilot" target="frontend-web" edge="1">
+                    <mxGeometry x="0.0855" y="-20" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="120" y="590"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e3" value="Донастройка протеза,&lt;br&gt;управление" style="endArrow=block;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="pilot" target="app" edge="1">
+                    <mxGeometry x="-0.0634" y="6" relative="1" as="geometry">
+                        <mxPoint x="100" y="328" as="sourcePoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" value="Session cookie&lt;br&gt;API requests" style="endArrow=block;html=1;" parent="1" source="frontend-web" target="bff" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="Session cookie&lt;br&gt;API requests" style="endArrow=block;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="app" target="bff" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="790" y="235"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e6" value="OAuth 2.0 flow" style="endArrow=block;html=1;" parent="1" source="bff" target="idp-gateway" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" value="Store/retrieve tokens" style="endArrow=block;html=1;" parent="1" source="bff" target="token-service" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" value="Get user info" style="endArrow=block;html=1;" parent="1" source="bff" target="local-identity-store" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" value="OAuth 2.0" style="endArrow=block;html=1;dashed=1;" parent="1" source="idp-gateway" target="keycloak-ru" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" value="OAuth 2.0" style="endArrow=block;html=1;dashed=1;" parent="1" source="idp-gateway" target="azure-ad-eu" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" value="OAuth 2.0" style="endArrow=block;html=1;dashed=1;" parent="1" source="idp-gateway" target="aws-cognito-us" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" value="User mapping" style="endArrow=block;html=1;" parent="1" source="token-service" target="local-identity-store" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e13" value="Authenticated requests&lt;br&gt;(with IdP tokens)" style="endArrow=block;html=1;" parent="1" source="bff" target="api" edge="1">
+                    <mxGeometry x="-0.0118" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e14" value="Предоставление &lt;br&gt;миосигналов" style="endArrow=block;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="pilot" target="chip" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="355" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e15" value="Управление протезом" style="endArrow=block;html=1;" parent="1" source="app" target="chip" edge="1">
+                    <mxGeometry x="-0.2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e16" value="Отправка технической телеметрии" style="endArrow=block;html=1;" parent="1" source="chip" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e17" style="endArrow=block;html=1;" parent="1" source="api" target="db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e18" style="endArrow=block;html=1;" parent="1" source="shop" target="crm" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e19" style="endArrow=block;html=1;" parent="1" source="crm" target="crmdb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e20" style="endArrow=block;html=1;" parent="1" source="operator" target="crm" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e21" style="endArrow=block;html=1;" parent="1" source="ml" target="cli" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e22" style="endArrow=block;html=1;" parent="1" source="cli" target="db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
